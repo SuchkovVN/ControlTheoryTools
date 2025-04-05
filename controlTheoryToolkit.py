@@ -100,26 +100,31 @@ def AlgebraicRiccatiSol(A, B, Q, R, evalf=True):
             return sol
     return []
 
+def solveCommonSystem(t, x, F, u, x_0, t_lims, t_eval):
+    '''
+    Finds numerical solution for equation of form
+    x'(t) = F(t, x) + u(t, x), where x(t) is m-dim vector
+    F(t, x) is m-dim vector w/ equations and u(t, x) is m-dim input vector
+    Returns solution for x and calculated values of u in t_eval points
+    '''
+    splam = sp.lambdify((t, x), (F + u))
+    
+    def rhs(t, x):
+        s = splam(t, x)
+        return [item[0] for item in s]
+
+    sol = scipy.integrate.solve_ivp(rhs, t_lims, x_0, t_eval=t_eval)
+    cont = sp.lambdify((t, x), u)
+    U = [cont(t, y)[0][0] for t, y in zip(t_eval, sol.y.T)]
+    return sol, U
+
 def solveLinearSystem(t, x, A, u, B, x_0, t_lims, t_eval):
     '''
     Finds numerical solution for equation of form
     x'(t) = Ax(t) + Bu(t, x)
     Returns solution for x and calculated values of u in t_eval points
     '''
-    splam = sp.lambdify((t, x), (A * x + B * u))
-    
-    def rhs(t, x):
-        s = splam(t, x)
-        result = []
-        for item in s:
-            result.append(item[0])
-        return result
-
-    sol = scipy.integrate.solve_ivp(rhs, t_lims, x_0, t_eval=t_eval)
-    cont = sp.lambdify((t, x), u)
-    U = [cont(t, y)[0][0] for t, y in zip(t_eval, sol.y.T)]
-    return sol, U
-        
+    return solveCommonSystem(t, x, A*x, B*u, x_0, t_lims, t_eval)
 
 
 
