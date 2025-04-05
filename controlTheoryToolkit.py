@@ -103,11 +103,11 @@ def AlgebraicRiccatiSol(A, B, Q, R, evalf=True):
 def solveCommonSystem(t, x, F, u, x_0, t_lims, t_eval):
     '''
     Finds numerical solution for equation of form
-    x'(t) = F(t, x) + u(t, x), where x(t) is m-dim vector
-    F(t, x) is m-dim vector w/ equations and u(t, x) is m-dim input vector
+    x'(t) = F(t, x, u), where x(t) is m-dim vector
+    F(t, x) is m-dim vector w/ equations and u(t, x) is input
     Returns solution for x and calculated values of u in t_eval points
     '''
-    splam = sp.lambdify((t, x), (F + u))
+    splam = sp.lambdify((t, x), (F))
     
     def rhs(t, x):
         s = splam(t, x)
@@ -124,7 +124,7 @@ def solveLinearSystem(t, x, A, u, B, x_0, t_lims, t_eval):
     x'(t) = Ax(t) + Bu(t, x)
     Returns solution for x and calculated values of u in t_eval points
     '''
-    return solveCommonSystem(t, x, A*x, B*u, x_0, t_lims, t_eval)
+    return solveCommonSystem(t, x, A*x + B*u, u, x_0, t_lims, t_eval)
 
 
 
